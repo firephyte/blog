@@ -34,7 +34,7 @@ We see ports 22 and 80 open. Some other weird ports are also active, but filtere
 
 Upon visiting the webpage, we find a blank page with a link to tickets.keeper.htb:
 
-![start page](keeper.htb.png)
+![start page](assets/keeper.htb.png)
 
 Let's add this to our hosts file:
 
@@ -44,19 +44,19 @@ $ echo "10.10.11.227 tickets.keeper.htb keeper.htb" >> /etc/hosts
 
 Now, we can view the site at tickets.keeper.htb. The site seems to be a ticket manager and requires login:
 
-![site login](posts/HTB%20Machines/Keeper/assets/login.png)
+![site login](assets/login.png)
 
 We can see that the application is running Best Practical Request Tracker. My first instinct here is to look for default credentials.
 
 With some googling we find that the default credentials for this app are root:password. Let's try using that to log in:
 
-![homepage](posts/HTB%20Machines/Keeper/assets/home.png)
+![homepage](assets/home.png)
 
 We see a lot of options at the top. Search, Reports, etc. There could be exploits hiding in every single one of those. Let's skim through all of them first.
 
 In the Admin -> Users page, we can see that there are two users: lnorgaard and root. We can click on lnorgaard to view his information:
 
-![userpage](user.png)
+![userpage](assets/user.png)
 
 We see that the initial password for this user is set to Welcome2023!. We try logging in via SSH and it works!
 
@@ -100,7 +100,7 @@ After doing some research on the .kdbx file, I find it's a KeePass database file
 
 I try opening the .kdbx file using a software named MacPass and I'm right, we need a master password.
 
-![macpass](macpass.png)
+![macpass](assets/macpass.png)
 
 The password to log in as lnorgaard doesn't work, so my intuition says that we need to extract a key or password from the dump file.
 
@@ -164,25 +164,25 @@ If the tool failed to extract the full master password, either:
 
 To prove that #2 is correct, we can look back to our enumeration. One of the users has a Danish name:
 
-![name](name.png)
+![name](assets/name.png)
 
 This means that there is a high chance the password contains special characters too. Let's do some searching to see if we can just form the password together.
 
 We do a google search leaving those blanks as unknown characters:
 
-![search1](search1.png)
+![search1](assets/search1.png)
 
 Did you mean: <>rodgrod med flode
 
 Interesting...
 
-![search2](search2.png)
+![search2](assets/search2.png)
 
 Ha! The creator probably decided to use a famous dish as his password. Let's try it.
 
 Rødgrød med fløde doesn't work, but rødgrød med fløde allows us to access the database!
 
-![db](db.png)
+![db](assets/db.png)
 
 We can now see the root password. But when we try to log in, it doesn't work:
 
@@ -198,20 +198,20 @@ root@10.10.11.227: Permission denied (publickey,password).
 
 Let's see what else we can find from the databae. In the Notes section, there is also a PUTTY ssh key. Let's try using that to log in instead.
 
-![putty](putty.png)
+![putty](assets/putty.png)
 
 We can convert this key to a private key using PuTTYgen. 
 First, we load in the key using File -> Load private key:
 
-![putty1](putty1.png)
+![putty1](assets/putty1.png)
 
 Next, we export the private key using Customize -> Export OpenSSH key:
 
-![putty2](putty2.png)
+![putty2](assets/putty2.png)
 
 Now, we get a SSH private key that we can use to log in.
 
-![rsa](rsa.png)
+![rsa](assets/rsa.png)
 
 We use this key to log in as root and it works!
 
