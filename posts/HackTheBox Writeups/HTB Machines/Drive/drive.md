@@ -43,11 +43,11 @@ echo "10.10.11.235 drive.htb" >> /etc/hosts
 
 Port 3000 is also running, but it's filtered meaning we can't access it. Maybe it will be useful later in the exploitation. Taking a look at the webpage, it seems to be a file sharing and saving application (Google Drive ripoff):
 
-![website](website.png)
+![website](assets/website.png)
 
 We can register an account and log in. There is a dashboard where we can see everyone's files. There is one file made by the admin, named "Welcome to Doodle Grive". We can also upload our own files.
 
-![upload](posts/HTB%20Machines/Drive/assets/upload.png)
+![upload](assets/upload.png)
 
 When we view a file, the URL seems to be '/<some kind of id>/getFileDetail'. Maybe playing with this ID will allow us to find other people's files?
 
@@ -105,21 +105,21 @@ ________________________________________________
 
 We can see a few files, but most of them give status 401. Since we're not the right user we can't read these files. However, there is an interesting "Reserve File" feature on the dashboard page. Clicking on it and intercepting the traffic in Burp, it's sending a request to /[content id]/block:
 
-![res](res.png)
+![res](assets/res.png)
 
 If we look at the request in Repeater, we can see that it returns the file's details just like the GetFileDetail endpoint does:
 
-![req](req.png)
+![req](assets/req.png)
 
 We can try reserving other people's files and it works! We can read the content of other people's files!
 
-![id_79](id_79.png)
+![id_79](assets/id_79.png)
 
 We find Martin's creds, and we can log in as SSH. We should also examine all of the other files to see if there's any other useful information.
 
-![id_98](id_98.png)
-![id_99](id_99.png)
-![id_101](id_101.png)
+![id_98](assets/id_98.png)
+![id_99](assets/id_99.png)
+![id_101](assets/id_101.png)
 
 There is a backup database somewhere. Maybe we can access it later. For now, let's just log in with SSH. We can try accessing the backup files that were mentioned, but we don't have the password (and apparently "the backup would be protected with strong password! don't even think to crack it guys! :)")
 
@@ -175,7 +175,7 @@ martin@drive:~$ ./chisel client 10.10.14.20:9002 R:3000:localhost:3000
 
 We can now access the internal service. It's running Gitea. We can log in with username 'martin@drive.htb' and the password we obtained before. Once we are logged in we can find the source code of the website. The one interesting thing I can find is a file called db_backup.sh:
 
-![db_backup](db_backup.png)
+![db_backup](assets/db_backup.png)
 
 There's our password! We can unzip all of the databases. We can try the oldest (September) database first. Cracking Tom's password gives "john boy", but that doesn't get us in as ssh:
 
@@ -264,11 +264,11 @@ Enter Username:
 
 We need a username (and password) but we don't have creds. Let's try opening it in Ghidra. Immediately, we can see the creds we need in the main function:
 
-![main](main.png)
+![main](assets/main.png)
 
 We can now log in. The code seems to send us to the main_menu function. When we look into there, we can see 6 functions. The "Activate user account" seems to be interesting. Looking into that function, we see a SQLite query:
 
-![user_account](activate_user_account.png)
+![user_account](assets/activate_user_account.png)
 
 This is vulnerable to SQL injection. I can get a RCE using the load_extension() SQLite function. First of all, I'll create a C program with the following code (that reads the root flag):
 
