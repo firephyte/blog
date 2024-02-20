@@ -55,7 +55,7 @@ Service detection performed. Please report any incorrect results at https://nmap
 
 We can see HTTP and NFS open. Let's first check out the website. The website appears to be a browser clicking game, where you repeatedly click a button to get more points and level up. We can register and log in:
 
-![register](register.png) ![login](posts/HTB%20Machines/Clicker/assets/login.png)
+![register](assets/register.png) ![login](posts/HTB%20Machines/Clicker/assets/login.png)
 
 We also saw NFS from our Nmap scan, so we can see if we can mount anything there.
 
@@ -95,7 +95,7 @@ create_player.php  exports         logout.php  save_game.php
 
 Heading back to the website, we can click on 'Play' at the top. It redirects us to play.php, where we can click again and again to gain points. It's actually kind of fun, and I spent some time playing it. (I already hacked my score in the picture lol)
 
-![play](play.png)
+![play](assets/play.png)
 
 When we press Save and Close, the server sends a request to save_game.php with our clicks and level. We probably have to exploit this function somehow.
 
@@ -190,21 +190,21 @@ header('Location: /admin.php?msg=Data has been saved in ' . $filename);
 
 We can change the extension to be in .php format, so that if we inject code the server will execute it. But first, we need to make sure that we can set one of the fields to inject PHP. The three columns given to us are Nickname, Clicks, and Level. Clicks and Level are integers, so we can't do anything about that. We can change our nickname though! Using the endpoint from earlier, we can set our nickname to a PHP RCE:
 
-![nickname](nickname.png)
+![nickname](assets/nickname.png)
 
 We can give it a try and see what we get:
 
 ![export](assets/exportpng)
 
-![export_result](export_result.png)
+![export_result](assets/export_result.png)
 
 It has been saved. Now, we can try testing it out:
 
-![rce](posts/HTB%20Machines/Clicker/assets/rce.png)
+![rce](assets/rce.png)
 
 It worked! The id command was executed. Now, we can leverage this RCE to get a reverse shell. I'm not sure if special characters work here, so I'm not gonna do anything fancy. Just gonna set up a shell script from a HTTP server and pipe it to bash.
 
-![shell](shell.png)
+![shell](assets/shell.png)
 
 ```
 $ python3 -m http.server
